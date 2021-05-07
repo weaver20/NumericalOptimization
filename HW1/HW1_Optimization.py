@@ -27,7 +27,7 @@ def hessian_h(vec: np.matrix):
                  (1 + np.sin(np.product(vec)) ** 2) * np.sin(np.product(vec)) ** 2) / \
                 (1 + np.sin(np.product(vec)) ** 2) ** 1.5
 
-    return derivative * hessian_phi(vec)
+    return derivative * hessian_phi(np.matrix(np.identity(3)), vec)
 
 
 # Section 1.2.1 - Numerical Differentiation
