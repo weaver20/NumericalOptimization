@@ -1,30 +1,33 @@
 import numpy as np
-import torch
-import numdifftools as nd
 
 
-def compute(x: np.array, A: np.array):
-    assert x.shape == (3, 1)
-    assert A.shape == (3, 3)
-    Ax = np.matmul(A, x)
-    value = np.sin(np.product(Ax))
-    cosAx = np.cos(np.product(Ax))
-    phi_gradiant = cosAx * np.array([Ax[1, 0] * Ax[2, 0], Ax[0, 0] * Ax[2, 0], Ax[0, 0] * Ax[1, 0]])
-    gradiant = np.matmul(A.transpose(), phi_gradiant)
-    hessian_diag = np.array([[-np.sin(np.product(Ax)) * (Ax[1, 0] * pow(Ax[2, 0],2)), 0, 0], \
-                             [0, -np.sin(np.product(Ax)) * (Ax[1, 0] * pow(Ax[2, 0],2)) , 0], \
-                             [0, 0, -np.sin(np.product(Ax)) * (Ax[1, 0])* pow(Ax[2, 0],2)]])
-    hessian_not_diag = np.array(
-        [[0, -np.sin(np.product(Ax)) * (Ax[1, 0] * Ax[0, 0] * pow(Ax[2, 0],2)) + cosAx * Ax[2, 0], \
-          -np.sin(np.product(Ax)) * ((pow(Ax[1, 0],2)) * Ax[0, 0] * Ax[2, 0]) + cosAx * Ax[1, 0]], \
-         [0, 0, -np.sin(np.product(Ax)) * (Ax[1, 0] * pow(Ax[0, 0], 2) * Ax[2, 0]) + cosAx * Ax[0, 0]], \
-         [0, 0, 0]])
-    # note that the hessian is symmetric so I only had to compute the diagonal and the upper triangle
-    return value, gradiant, hessian_diag + hessian_not_diag + hessian_not_diag.transpose()
+# Section 1.1.5 - Analytical Evaluation
+
+# SubSection 1
+def gradient_phi(mat: np.matrix, vec: np.matrix):
+    grad_vec = np.matrix(np.array([[vec[1] * vec[2]], [vec[0] * vec[2]], [vec[0] * vec[1]]]))
+    return np.cos(np.product(vec)) * grad_vec
 
 
-print(compute(np.array([[2], [1], [1]]), np.array([[2, 0, 0], [0, 2, 0], [0, 0, 3]])))
-print("end")
+def hessian_phi(mat: np.matrix, vec: np.matrix):
+    hessian_mat = np.matrix([[0, vec[2], vec[1]],
+                             [vec[2], 0, vec[0]],
+                             [vec[1], vec[0], 0]])
+    return -1 * np.sin(np.product(vec)) * hessian_mat
+
+
+# SubSection 2
+def gradient_h(vec: np.matrix):
+    return np.cos(np.sin(np.product(vec))) * gradient_phi(np.matrix(np.identity(3)), vec)
+
+
+def hessian_h(vec: np.matrix):
+    # Calculating the 2nd derivative of h of phi
+    derivative = (np.cos(np.product(vec)) ** 2 -
+                 (1 + np.sin(np.product(vec)) ** 2) * np.sin(np.product(vec)) ** 2) / \
+                (1 + np.sin(np.product(vec)) ** 2) ** 1.5
+
+    return derivative * hessian_phi(vec)
 
 
 # Section 1.2.1 - Numerical Differentiation
