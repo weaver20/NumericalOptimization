@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 
 # SubSection 1
 def gradient_phi(mat: np.matrix, vec: np.matrix):
-    grad_vec = np.matrix(np.array([[vec[1] * vec[2]], [vec[0] * vec[2]], [vec[0] * vec[1]]]))
+    grad_vec = np.matrix(np.array([[vec[1] * vec[2]], [vec[0] * vec[2]], [vec[0] * vec[1]]]),dtype=np.float128)
+    grad_vec = grad_vec.transpose()
     return np.cos(np.product(vec)) * grad_vec
 
 
@@ -67,19 +68,18 @@ def compare_grad():
     vec = np.matrix(np.random.randint(0, 9, size=(3, 1)))
     epsilon = []
     values = []
-    for i in range(60):
-        epsilon.append(np.random.uniform(2e-60, 1))
+    for i in range(61):
+        epsilon.append(2 ** -i)
 
-    for i in range(60):
+    for i in range(61):
         grad = gradient_phi(np.matrix(np.identity(3)), vec)
         num_grad = numerical_diff_gradient(func_phi, vec, epsilon[i])
-        x = gradient_phi(np.matrix(np.identity(3)), vec) - numerical_diff_gradient(func_phi, vec, epsilon[i])
-        y = max(x)
-        values.append(max(gradient_phi(np.matrix(np.identity(3)), vec)
-                          - numerical_diff_gradient(func_phi, vec, epsilon[i])))
-    plt.plot(epsilon, values)
-    plt.xscale("exponent")
-    plt.yscale("logarithmic")
+        x = np.abs(grad - num_grad)
+        y = max(x).item()
+        values.append(y)
+    plt.plot(list(range(61)), values)
+    plt.xscale("linear")
+    plt.yscale("log")
     plt.show()
 
 
